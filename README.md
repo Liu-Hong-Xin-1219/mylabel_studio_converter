@@ -9,16 +9,28 @@ https://github.com/HumanSignal/label-studio-sdk/tree/master/src/label_studio_sdk
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Examples](#examples)
-    - [JSON](#json)
-    - [CSV](#csv)
-    - [CoNLL 2003](#conll-2003)
-    - [COCO](#coco)
-    - [Pascal VOC XML](#pascal-voc-xml)
+- [Warning](#warning)
+- [Label Studio Converter](#label-studio-converter)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Examples](#examples)
+      - [JSON](#json)
+      - [CSV](#csv)
+      - [CoNLL 2003](#conll-2003)
+      - [COCO](#coco)
+      - [Pascal VOC XML](#pascal-voc-xml)
 - [YOLO to Label Studio Converter](#yolo-to-label-studio-converter)
-  - [Usage](#usage)
+    - [YOLO directory structure](#yolo-directory-structure)
+    - [Usage](#usage)
   - [Tutorial: Importing YOLO Pre-Annotated Images to Label Studio using Local Storage](#tutorial-importing-yolo-pre-annotated-images-to-label-studio-using-local-storage)
+    - [Prerequisites](#prerequisites)
+    - [Step 1: Set Up Your Environment and Run Label Studio](#step-1-set-up-your-environment-and-run-label-studio)
+    - [Step 2: Setup Local Storage](#step-2-setup-local-storage)
+    - [Step 3: Verify Image Access](#step-3-verify-image-access)
+    - [Step 4: Convert YOLO Annotations](#step-4-convert-yolo-annotations)
+    - [Step 5: Import Converted Annotations](#step-5-import-converted-annotations)
+    - [Step 6: Verify Annotations](#step-6-verify-annotations)
+    - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -433,6 +445,8 @@ We would love to get your help for creating converters to other models. Please f
 
 - [Contributing Guideline](https://github.com/heartexlabs/label-studio/blob/develop/CONTRIBUTING.md)
 - [Code Of Conduct](https://github.com/heartexlabs/label-studio/blob/develop/CODE_OF_CONDUCT.md)
+
+#if you want to modify this program, you will have to run pip install . a new time 
 
 # License
 

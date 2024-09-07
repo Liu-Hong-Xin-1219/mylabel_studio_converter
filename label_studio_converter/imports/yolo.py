@@ -12,9 +12,39 @@ from urllib.request import (
 
 from label_studio_converter.utils import ExpandFullPath
 from label_studio_converter.imports.label_config import generate_label_config
-
+from math import sin,cos
+from math import pi as PI
+from math import radians as rad
+import cv2
+import numpy as np
 logger = logging.getLogger('root')
 default_image_root_url = '/data/local-files/?d=images'
+
+# def draw_rotated_bbox(image, x, y, w, h, angle):
+#     # Denormalize x, y, w, h (convert back to pixel values)
+#     img_height, img_width = image.shape[:2]
+#     x = x * img_width
+#     y = y * img_height
+#     w = w * img_width
+#     h = h * img_height
+
+#     width,height,rot=w,h,angle
+#     rr=rad(rot)
+#     xx=x+width*(-cos(rr))/2+height*sin(rr)/2
+#     yy=y-width*sin(rr)/2+height*(-cos(rr))/2
+#     cv2.circle(image, (int(xx), int(yy)), 10, (255,255,0), -1)    # Calculate the center, size and angle
+#     center = (int(x), int(y))
+#     size = (int(w), int(h))
+    
+#     # Create the rotated rectangle
+#     rect = (center, size, angle)
+    
+#     # Get the 4 corner points of the rotated rectangle
+#     box = cv2.boxPoints(rect)
+#     box = np.int0(box)
+    
+#     # Draw the rotated rectangle on the image
+#     cv2.drawContours(image, [box], 0, (0, 255, 0), 2)
 
 
 def convert_yolo_to_ls(
@@ -26,6 +56,7 @@ def convert_yolo_to_ls(
     image_root_url=default_image_root_url,
     image_ext='.jpg,.jpeg,.png',
     image_dims: Optional[Tuple[int, int]] = None,
+    is_obb=False
 ):
     """Convert YOLO labeling to Label Studio JSON
     :param input_dir: directory with YOLO where images, labels, notes.json are located
@@ -70,6 +101,7 @@ def convert_yolo_to_ls(
     # loop through images
     for f in os.listdir(images_dir):
         image_file_found_flag = False
+        
         for ext in image_ext:
             if f.endswith(ext):
                 image_file = f
@@ -78,7 +110,7 @@ def convert_yolo_to_ls(
                 break
         if not image_file_found_flag:
             continue
-
+        
         image_root_url += '' if image_root_url.endswith('/') else '/'
         task = {
             "data": {
@@ -90,7 +122,7 @@ def convert_yolo_to_ls(
 
         # define coresponding label file and check existence
         label_file = os.path.join(labels_dir, image_file_base + '.txt')
-
+        # cvim = cv2.imread(os.path.join(images_dir, image_file_base+'.png'))
         if os.path.exists(label_file):
             task[out_type] = [
                 {
@@ -113,13 +145,23 @@ def convert_yolo_to_ls(
                 for line in lines:
                     values = line.split()
                     label_id, x, y, width, height = values[0:5]
-                    score = float(values[5]) if len(values) >= 6 else None
-                    x, y, width, height = (
+                    rot=values[5] if is_obb else 0
+                    score = float(values[5+is_obb]) if len(values) >= 6+is_obb else None
+                   
+                    x, y, width, height,rot= (
                         float(x),
                         float(y),
                         float(width),
                         float(height),
+                        float(rot)
                     )
+                    if is_obb:
+                        rr=rad(rot)
+                        x=x*image_width+image_width*width*(1-cos(rr))/2+image_height*height*sin(rr)/2
+                        y=y*image_height-image_width*width*sin(rr)/2+image_height*height*(1-cos(rr))/2
+                        x=x/image_width
+                        y=y/image_height
+                        # draw_rotated_bbox(cvim,x,y,width,height,rot)
                     item = {
                         "id": uuid.uuid4().hex[0:10],
                         "type": "rectanglelabels",
@@ -128,7 +170,7 @@ def convert_yolo_to_ls(
                             "y": (y - height / 2) * 100,
                             "width": width * 100,
                             "height": height * 100,
-                            "rotation": 0,
+                            "rotation": rot,
                             "rectanglelabels": [categories[int(label_id)]],
                         },
                         "to_name": to_name,
@@ -137,10 +179,13 @@ def convert_yolo_to_ls(
                         "original_width": image_width,
                         "original_height": image_height,
                     }
+                    
+
+
                     if score:
                         item["score"] = score
                     task[out_type][0]['result'].append(item)
-
+        # cv2.imwrite(os.path.join("E:\label-studio-converter\output",image_file_base+'.png'),cvim)
         tasks.append(task)
 
     if len(tasks) > 0:
@@ -172,7 +217,14 @@ def convert_yolo_to_ls(
 
 
 def add_parser(subparsers):
+    
     yolo = subparsers.add_parser('yolo')
+
+    yolo.add_argument(
+        '--is-obb',
+        dest='is_obb',
+        action='store_true',
+    )
 
     yolo.add_argument(
         '-i',
@@ -218,7 +270,7 @@ def add_parser(subparsers):
         '--image-ext',
         dest='image_ext',
         help='image extension to search: .jpeg or .jpg, .png',
-        default='.jpg',
+        default='.png',
     )
     yolo.add_argument(
         '--image-dims',

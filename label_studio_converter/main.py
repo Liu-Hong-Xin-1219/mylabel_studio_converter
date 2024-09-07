@@ -158,7 +158,7 @@ def export(args):
 
 
 def imports(args):
-    if args.import_format == 'yolo':
+    if 'yolo' in args.import_format:
         import_yolo.convert_yolo_to_ls(
             input_dir=args.input,
             out_file=args.output,
@@ -167,6 +167,7 @@ def imports(args):
             out_type=args.out_type,
             image_root_url=args.image_root_url,
             image_ext=args.image_ext,
+            is_obb=args.is_obb
         )
 
     elif args.import_format == 'coco':
@@ -195,3 +196,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""
+label-studio-converter import yolo_obb -i D:\pcbobb\dealtdata -o pcb_yolo_obb_train.json --image-root-url "/data/local-files/?d=images/train"
+
+"""

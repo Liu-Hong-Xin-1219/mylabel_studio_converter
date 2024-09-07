@@ -25,7 +25,7 @@ def new_task(out_type, root_url, file_name):
 
 def create_bbox(annotation, categories, from_name, image_height, image_width, to_name):
     label = categories[int(annotation['category_id'])]
-    x, y, width, height = annotation['bbox']
+    x, y, width, height = annotation['bbox'][:4]
     x, y, width, height = float(x), float(y), float(width), float(height)
     item = {
         "id": uuid.uuid4().hex[0:10],
